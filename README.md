@@ -1,2 +1,3 @@
 # NMRproc
-A repository for solid-state NMR simulations and processing
+A repository a python package with modules and scripts for solid-state NMR processing and simulation.
+### Work in progress!!! ###
