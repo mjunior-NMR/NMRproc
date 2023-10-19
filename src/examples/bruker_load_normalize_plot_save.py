@@ -13,17 +13,29 @@ Created on Fri Sep  8 15:00:14 2023
 # import csdmpy as cp
 
 
-import ssnmr_processing.bruker as br
+import ssnmr_proc.bruker as br
 # import nmrglue as ng
 import matplotlib.pyplot as plt
+import os
+import git
+
+'''=========== Just to get git-repository main directory ================='''
+def get_git_root(path):  
+    git_repo = git.Repo(path, search_parent_directories=True)
+    git_root = git_repo.git.rev_parse("--show-toplevel")
+    return git_root
+''' ======================================================================'''
 # from matplotlib.ticker import (MultipleLocator)
 # import numpy as np
 
 #%% set data_dir and create ProcData class objet
-# path = r'G:\Outros computadores\PC-IFSC\IFSC\Dados\Bruker\camila\2.5mm_Cdbtc_1hBM_2022-11-04\3\pdata\1'
-path = r'D:\Marcos\IFSC\Dados\Bruker\camila\2.5mm_Cdbtc_1hBM_2022-11-04\3\pdata\1'
 
-spc = br.ProcData(path)  #Atribui a classe bruker.ProcData à variável spc
+
+data_dir = get_git_root(os.getcwd()) + r'\data\raw\C13_spectrum\3\pdata\1'
+
+# data_dir = r'D:\Marcos\IFSC\Dados\Bruker\camila\2.5mm_Cdbtc_1hBM_2022-11-04\3\pdata\1'
+
+spc = br.ProcData(data_dir)  #Atribui a classe bruker.ProcData à variável spc
 spc.normalize() #Normaliza o espectro
 # spc.normalize(method = 'area', region = (190,110)) #Normaliza o espectro
 
@@ -56,4 +68,6 @@ spc.save(r'spectrum.dat') # Utiliza o método da classe bruker.ProcData para sal
 # plt.grid()
 # plt.tight_layout()
 # plt.show()
+
+
 
