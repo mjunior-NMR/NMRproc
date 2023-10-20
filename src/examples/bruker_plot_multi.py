@@ -7,8 +7,10 @@ Plot multiple pre-processe Bruker spectra
 @author: Marcos de Oliveira Jr.
 """
 
-import ssnmr_processing.bruker as br
+import ssnmr_proc.bruker as br
 import matplotlib.pyplot as plt
+import git
+import os
 # from itertools import zip
 
 #%% set paths and sample names and load data into spc dictionary
@@ -17,19 +19,29 @@ mIm = {'Zy2-m': r'mIm, acet. sin agitación',
        'Zx3-m': r'mIm, metanol, con agitación',
        'Zx2-m': r'mIm, metanol, sin agitación'}
 
-mIm_PhIm = {'Y3-m':  r'mIm+PhIm, acet., con agitación', 
-            'Y2-m':  r'mIm+PhIm, acet., sin agitación',
-            'Y1-h':  r'mIm+PhIm, acet., solvotermal'}
+'''=========== Just to get git-repository main directory ================='''
+def get_git_root(path):  
+    git_repo = git.Repo(path, search_parent_directories=True)
+    git_root = git_repo.git.rev_parse("--show-toplevel")
+    return git_root
+''' ======================================================================'''
+# from matplotlib.ticker import (MultipleLocator)
+# import numpy as np
 
-mainpath = (r'd:/marcos/ifsc/dados/bruker/Pablo_Zifs/')
+#%% set data_dir and create ProcData class objet
+
+
+parent_dir = get_git_root(os.getcwd())
+
+data_dir = (parent_dir + r'/data/raw/ZIFs/')
 # mainpath = (r'G:/Outros computadores/PC-IFSC/IFSC/Dados/Bruker/Pablo_ZIFs/')
 
 
 fullpath = dict() # Dictionary with the files path
 spcs = dict() # Dictionary containing proc-spectra for each sample.
 
-for key in mIm_PhIm.keys():
-    fullpath[key] = mainpath + '2.5mm_' + key + r'\3\pdata\1'
+for key in mIm.keys():
+    fullpath[key] = data_dir + '2.5mm_' + key + r'\3\pdata\1'
     print('loading from: ',fullpath[key])
     spcs[key] = br.ProcData(fullpath[key])
     
