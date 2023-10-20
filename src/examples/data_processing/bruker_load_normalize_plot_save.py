@@ -47,8 +47,12 @@ spc.plot(axis = ax, nucleus = '13C',major_ticks_space=10,minor_ticks_space=2)
 ax.set_xlim([190,110])
 ax.set_ylim([-0.05,1])
 
-#%% Save xy ascii data
-spc.save(r'spectrum.dat') # Utiliza o método da classe bruker.ProcData para salvar o espectro em um arquivo.
+#%% Save data in multiple formats
+spc.save(r'spectrum.dat') # Save spectrum in ascii file in xy format.
+spc.save(r'spectrum.txt', file_type='dmfit') # Save a dmfit readable spectrum file
+spc.save(r'spectrum.csdf', file_type='csdf') #save a csdm object in json format.
+spc.save(r'procdata.pkl', file_type = 'pickle') # Save a binary file containing the spc object of class ProcData
+
 
 
 # converter = ng.fileio.convert.converter()

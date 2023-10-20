@@ -32,6 +32,7 @@ class ProcData():
         self.fid = ng.process.proc_base.ifft(tmp[0]+1j*tmp[1])
         self.udic[0]['time'] = False
         self.udic[0]['freq'] = True
+        self.reffrq = self.dic['acqus']['SFO1']
 
 #%% Get area of an spectral region defined from a tupl variable
     def area(self,region = tuple()):
@@ -95,11 +96,7 @@ class ProcData():
         if major_ticks_space != None:
             axis.xaxis.set_minor_locator(MultipleLocator(minor_ticks_space))
     
-#%%    '''Save spectrum to file'''
-    def save(self,filename = r'.\spec.dat', delimiter=' ', newline='\n', header='', footer='', comments='# ', encoding=None):
-        self.xydata = np.column_stack([self.ppm_scale,self.rdata])
-        np.savetxt(filename, self.xydata, fmt='%.18e', delimiter=' ', newline='\n', header='', footer='', comments='# ', encoding=None)
-        
+
 #%%   '''Save proc_spec as csdm file'''
     def to_csdm(self):
         """
@@ -125,6 +122,56 @@ class ProcData():
             return csdm_spec
         except:
             raise ImportError("csdmpy must be installed to use this function. Please install by typing 'pip install csdmpy' in the terminal.")
+
+
+#%%    '''Save spectrum to file'''
+    def save(self,filename = r'data.dat', file_type = r'ascii', delimiter=' ', newline='\n', header='', footer='', comments='# ', encoding=None):
+        
+        if file_type == 'ascii':
+            self.xydata = np.column_stack([self.ppm_scale,self.rdata])
+            np.savetxt(filename, 
+                       self.xydata, 
+                       fmt='%.18e', 
+                       delimiter=' ', 
+                       newline='\n', 
+                       header='', 
+                       footer='', 
+                       comments='# ', 
+                       encoding=None)
+        elif file_type == 'dmfit': #Readable by dmfit software
+            self.xydata = np.column_stack([self.hz_scale,self.rdata])
+            np.savetxt(filename, 
+                       self.xydata, 
+                       fmt='%.18e', 
+                       delimiter=' ', 
+                       newline='\n', 
+                       header='ti:\t exported from NMRproc \n##freq '+f'{self.reffrq}', 
+                       footer='', 
+                       comments='', 
+                       encoding=None)
+        elif file_type == 'csdf': # serialized csdm file format
+            csdm_output = self.to_csdm()
+            csdm_output.save(filename)
+        elif file_type == 'pickle':
+            import pickle
+            with open(filename, 'wb') as file:
+                pickle.dump(self, file)
+                print(f'Object successfully saved to "{filename}"')
+        else:
+            print('Select a valid file_format: "ascii", "dmfit", "csdf", "pickle"')
+            
+'''======================== End of class ProcData ==================================='''
+
+
+def load_pdata_obj(file_dir):
+    
+    import pickle
+    
+    with open(file_dir, 'rb') as f:
+        procdata = pickle.load(f)
+    return procdata
+
+
 
 
 #%%
