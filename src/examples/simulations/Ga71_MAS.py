@@ -37,7 +37,7 @@ pd.normalize(method = '01')
 exp_spc = pd.to_csdm()
 
 # Create czjzek distribution object
-cz =  CzjzekDistribution(sigma=3.9)
+cz =  CzjzekDistribution(sigma=1.9)
 
 # Define ranges for Cq and eta
 Cq_range = np.linspace(0,30,100)
@@ -45,6 +45,8 @@ eta_range = np.linspace(0,1,20)
 
 # get Czjzek probability distribution function (pdf)
 Cq_dist, eta_dist, cz_amp = cz.pdf(pos=[Cq_range,eta_range])
+
+
 
 # plt.close('all')
 '''
