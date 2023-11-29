@@ -56,22 +56,10 @@ class ProcData():
             self.rdata = self.rdata*norm
             
         elif method == 'area':
-            if region == ():
-                raise ValueError(r'Region must be informed in Tuple format')
-            norm = 1/self.area(region)
-            self.rdata = self.rdata*norm
-            self.idata = self.idata*norm            
-            self.data = self.data*norm
-        elif method == '01':
-            minimo = min(self.rdata)
-            self.rdata = self.rdata-minimo
-            self.idata = self.idata-minimo
-            self.data = self.data-minimo
-            
-            norm = 1/max(self.rdata)
-            self.rdata = self.rdata*norm
-            self.idata = self.idata*norm            
-            self.data = self.data*norm                    
+            norm = self.area(region)
+            self.rdata = self.rdata/norm
+            self.idata = self.idata/norm            
+            self.data = self.data/norm
         else:
             raise ValueError(r'method must be either "intensity" or "area"!')
                 

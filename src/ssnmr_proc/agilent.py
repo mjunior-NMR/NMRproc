@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import (MultipleLocator)
 
 class ProcData(): 
-    """ A Class to work with Bruker pre-processed data:
+    """ A Class to work with Agilent raw data:
         spc = ProcData('data_dir') will return:
             spc.dic --> nmrglue dictionary with all acqu ans procs metadata
             spc.rdata --> Real spectrum
@@ -21,7 +21,7 @@ class ProcData():
             spc.plot() --> plot spectrum with NMR-like style"""
     def __init__(self,data_dir):
         #Data dir must be a directory with processed Bruker 1r or 2rr files.
-        self.dic, tmp = ng.bruker.read_pdata(data_dir, scale_data=True,all_components = True)
+        self.dic, tmp = ng.agilent.read_pdata(data_dir, scale_data=True,all_components = True)
         self.rdata = tmp[0] # Real spectrum
         self.idata = tmp[1] # Imag spectrum
         self.data = tmp[0]+1j*tmp[1]
@@ -56,22 +56,10 @@ class ProcData():
             self.rdata = self.rdata*norm
             
         elif method == 'area':
-            if region == ():
-                raise ValueError(r'Region must be informed in Tuple format')
-            norm = 1/self.area(region)
-            self.rdata = self.rdata*norm
-            self.idata = self.idata*norm            
-            self.data = self.data*norm
-        elif method == '01':
-            minimo = min(self.rdata)
-            self.rdata = self.rdata-minimo
-            self.idata = self.idata-minimo
-            self.data = self.data-minimo
-            
-            norm = 1/max(self.rdata)
-            self.rdata = self.rdata*norm
-            self.idata = self.idata*norm            
-            self.data = self.data*norm                    
+            norm = self.area(region)
+            self.rdata = self.rdata/norm
+            self.idata = self.idata/norm            
+            self.data = self.data/norm
         else:
             raise ValueError(r'method must be either "intensity" or "area"!')
                 
