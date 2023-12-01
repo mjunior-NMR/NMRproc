@@ -13,8 +13,8 @@ class ProcData():
     """ A Class to work with Bruker pre-processed data:
         spc = ProcData('data_dir') will return:
             spc.dic --> nmrglue dictionary with all acqu ans procs metadata
-            spc.rdata --> Real spectrum
-            spc.idata --> Imag spectrum
+            spc.data.real --> Real spectrum
+            spc.data.imag --> Imag spectrum
             spc.udic = nmrglue universal dictionary
             spc.ppm_scale = ppm axis
             spc.normalize(method = 'area' or 'intensity', range = 'full' or a tuple with integration region) Normalize spectrum by maximum or area
@@ -22,10 +22,8 @@ class ProcData():
     def __init__(self,data_dir):
         #Data dir must be a directory with processed Bruker 1r or 2rr files.
         self.dic, tmp = ng.bruker.read_pdata(data_dir, scale_data=True,all_components = True)
-        self.rdata = tmp[0] # Real spectrum
-        self.idata = tmp[1] # Imag spectrum
         self.data = tmp[0]+1j*tmp[1]
-        self.udic = ng.bruker.guess_udic(self.dic, self.rdata) # Universal nmrglue dictionary
+        self.udic = ng.bruker.guess_udic(self.dic, self.data.real) # Universal nmrglue dictionary
         self.uc = ng.fileiobase.uc_from_udic(self.udic) 
         self.ppm_scale = self.uc.ppm_scale() # ppm axis
         self.hz_scale = self.uc.hz_scale() # ppm axis
@@ -37,11 +35,11 @@ class ProcData():
 #%% Get area of an spectral region defined from a tupl variable
     def area(self,region = tuple()):
         if len(region) == 0:
-            area = abs(np.trapz(self.rdata,x = self.ppm_scale))            
+            area = abs(np.trapz(self.data.real,x = self.ppm_scale))            
         else:
             p1 = self.uc(str(region[0])+' ppm') #convert from ppm_scale to points p1 and p2
             p2 = self.uc(str(region[1])+' ppm')
-            reduced_rdata = self.rdata[min(p1,p2):max(p1,p2)]
+            reduced_rdata = self.data.real[min(p1,p2):max(p1,p2)]
             reduced_ppm_scale = self.ppm_scale[min(p1,p2):max(p1,p2)]
             area = abs(np.trapz(reduced_rdata,reduced_ppm_scale))
         return area
@@ -50,27 +48,27 @@ class ProcData():
 #%%  Normalize data by max intensity or area within region
     def normalize(self,method = 'intensity', region = tuple()):        
         if method == 'intensity':
-            norm = 1/max(self.rdata)            
-            self.idata = self.idata*norm  # real and imaginary are normalized by intensity of real data
+            norm = 1/max(self.data.real)            
+            self.data.imag = self.data.imag*norm  # real and imaginary are normalized by intensity of real data
             self.data = self.data*norm
-            self.rdata = self.rdata*norm
+            self.data.real = self.data.real*norm
             
         elif method == 'area':
             if region == ():
                 raise ValueError(r'Region must be informed in Tuple format')
             norm = 1/self.area(region)
-            self.rdata = self.rdata*norm
-            self.idata = self.idata*norm            
+            self.data.real = self.data.real*norm
+            self.data.imag = self.data.imag*norm            
             self.data = self.data*norm
         elif method == '01':
-            minimo = min(self.rdata)
-            self.rdata = self.rdata-minimo
-            self.idata = self.idata-minimo
+            minimo = min(self.data.real)
+            self.data.real = self.data.real-minimo
+            self.data.imag = self.data.imag-minimo
             self.data = self.data-minimo
             
-            norm = 1/max(self.rdata)
-            self.rdata = self.rdata*norm
-            self.idata = self.idata*norm            
+            norm = 1/max(self.data.real)
+            self.data.real = self.data.real*norm
+            self.data.imag = self.data.imag*norm            
             self.data = self.data*norm                    
         else:
             raise ValueError(r'method must be either "intensity" or "area"!')
@@ -84,7 +82,7 @@ class ProcData():
              line_color = 'k',
              font_name = 'Times new roman'):
         
-        axis.plot(self.ppm_scale, self.rdata, color = line_color)
+        axis.plot(self.ppm_scale, self.data.real, color = line_color)
         axis.set_yticks([])
         axis.spines['top'].set_visible(False)
         axis.spines['right'].set_visible(False)
@@ -136,11 +134,24 @@ class ProcData():
             raise ImportError("csdmpy must be installed to use this function. Please install by typing 'pip install csdmpy' in the terminal.")
 
 
+#%% Forward FFT (FFT)
+    def FFT(self):
+        self.data = ng.process.proc_base.fft(self.data)
+        
+
+#%% Inverse iFFT (iFFT)
+    def iFFT(self):
+        self.data = ng.process.proc_base.ifft(self.data)
+
+#%% Shift_data
+    def ls(self,pts=0):
+        self.data = ng.process.proc_base.ls(self.data, pts)
+
 #%%    '''Save spectrum to file'''
     def save(self,filename = r'data.dat', file_type = r'ascii', delimiter=' ', newline='\n', header='', footer='', comments='# ', encoding=None):
         
         if file_type == 'ascii':
-            self.xydata = np.column_stack([self.ppm_scale,self.rdata])
+            self.xydata = np.column_stack([self.ppm_scale,self.data.real])
             np.savetxt(filename, 
                        self.xydata, 
                        fmt='%.18e', 
@@ -151,7 +162,7 @@ class ProcData():
                        comments='# ', 
                        encoding=None)
         elif file_type == 'dmfit': #Readable by dmfit software
-            self.xydata = np.column_stack([self.hz_scale,self.rdata])
+            self.xydata = np.column_stack([self.hz_scale,self.data.real])
             np.savetxt(filename, 
                        self.xydata, 
                        fmt='%.18e', 

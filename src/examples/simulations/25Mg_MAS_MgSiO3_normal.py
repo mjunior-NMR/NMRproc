@@ -8,7 +8,7 @@ import time
 start_time = time.time()
 from mrsimulator import Simulator, SpinSystem, Site, SpectralDimension
 from mrsimulator.spin_system.isotope import Isotope
-from mrsimulator.method.lib import BlochDecayCTSpectrum
+from mrsimulator.method.lib import BlochDecayCTSpectrum,BlochDecaySpectrum
 from mrsimulator.spin_system.tensors import SymmetricTensor
 from mrsimulator import signal_processor as sp
 from mrsimulator.models import CzjzekDistribution
@@ -31,17 +31,17 @@ def get_git_root(path):
 
 '''================ Get Czjzek distribution ============================= '''
 # Load experimental data into class ProcData
-data_dir = get_git_root(os.getcwd()) + r'\data\raw\GaGeO_glasses\1.3mm_Younes_21_10_28_71Ga_50-20-30\101\pdata\1'
+data_dir = get_git_root(os.getcwd()) + r'\data\raw\MgO_glasses\25Mg_MgSiO3_180W\pdata\1'
 pd = br.ProcData(data_dir) # Create pd as object from ProcData class
-pd.normalize(method = '01')
+pd.normalize()
 exp_spc = pd.to_csdm()
 
 # Create czjzek distribution object
-cz =  CzjzekDistribution(sigma=4)
+cz =  CzjzekDistribution(sigma=2.22)
 
 # Define ranges for Cq and eta
-Cq_range = np.linspace(0,30,100)
-eta_range = np.linspace(0,1,20)
+Cq_range = np.linspace(0,18,50)
+eta_range = np.linspace(0,1,10)
 
 # get Czjzek probability distribution function (pdf)
 Cq_dist, eta_dist, cz_amp = cz.pdf(pos=[Cq_range,eta_range])
@@ -49,38 +49,37 @@ Cq_dist, eta_dist, cz_amp = cz.pdf(pos=[Cq_range,eta_range])
 
 # get average Cq
 cz_sum_over_eta = np.sum(cz_amp,axis=0)
-plt.plot(Cq_range,cz_sum_over_eta)
-
+# plt.plot(Cq_range,cz_sum_over_eta)
 Cq_av = np.sum(cz_sum_over_eta*Cq_range)/np.sum(cz_sum_over_eta)
+print(Cq_av)
 
 
 # plt.close('all')
 
-fig, ax = plt.subplots(figsize=(5, 5))
+fig, ax = plt.subplots(figsize=(5, 6),num=1)
 ax.contourf(Cq_dist, eta_dist, cz_amp, levels=10)
 plt.xlabel("$C_q$ / MHz")
 plt.ylabel("$\eta$")
-plt.tight_layout()
-plt.show()
+
 
 ''' ======================================================================'''
 
 ''' =================== Simulation step ================================='''
 
 #%% Simulation
-systems = single_site_system_generator(isotope="71Ga",
-                                       isotropic_chemical_shift = 219.6,
+systems = single_site_system_generator(isotope="25Mg",
+                                       isotropic_chemical_shift = 13,
                                        quadrupolar={
                                            "Cq": Cq_dist * 1e6, 
                                            "eta": eta_dist}, 
                                        abundance= cz_amp,
-                                       shielding_symmetric = {'zeta': 50, 'eta': 1}
+                                       shielding_symmetric = {'zeta': 150, 'eta': 0}
                                        )
 
 
 MAS = BlochDecayCTSpectrum(
-    channels=["71Ga"],
-    rotor_frequency=60000,  # in Hz
+    channels=["25Mg"],
+    rotor_frequency=20000,  # in Hz
     spectral_dimensions=[
         SpectralDimension(spectral_width=pd.udic[0]['sw'], reference_offset=pd.udic[0]['car'])  # values in Hz
     ],
@@ -89,17 +88,22 @@ MAS = BlochDecayCTSpectrum(
 
 sim = Simulator()
 sim.config.number_of_sidebands = 16 # eight sidebands are sufficient for this example
+sim.config.integration_volume = "octant"
+sim.config.integration_density = 20 # (see https://mrsimulator.readthedocs.io/en/stable/user_guide/simulator/simulator.html?highlight=sphere#integration-volume)
 sim.spin_systems = systems  # add the spin systems
 sim.methods = [MAS]
 sim.run()
 
-#%% Post processing
 sim_spc = sim.methods[0].simulation
+
+
+
+#%% Post processing and plot
 
 simproc = sp.SignalProcessor(
 operations=[
 sp.IFFT(),
-sp.apodization.Gaussian(FWHM="600 Hz"),
+sp.apodization.Gaussian(FWHM="5000 Hz"),
 sp.FFT(),
 ]
 )
@@ -107,12 +111,12 @@ sp.FFT(),
 sim_spc = simproc.apply_operations(sim_spc)
 sim_spc /= sim_spc.max()
 
-#%% Plot the spectra
-# fig, ax = plt.subplots(figsize=(6, 3), subplot_kw={"projection": "csdm"})
-# ax.plot(exp_spc.real)
-# ax.plot(sim_spc.real)
-# plt.tight_layout()
-# plt.xlim([1500,-2000])
+
+
+fig, ax = plt.subplots(figsize=(6, 5), subplot_kw={"projection": "csdm"}, num=2)
+ax.plot(exp_spc.real)
+ax.plot(sim_spc.real, color = 'k')
+plt.xlim([3000,-4000])
 plt.show()
 
 print("--- %s seconds ---" % (time.time() - start_time))
