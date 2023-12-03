@@ -134,8 +134,6 @@ class ProcData():
             raise ImportError("csdmpy must be installed to use this function. Please install by typing 'pip install csdmpy' in the terminal.")
 
 
-
-
 #%% Forward FFT (FFT)
     def FFT(self):
         self.data = ng.process.proc_base.fft(self.data)

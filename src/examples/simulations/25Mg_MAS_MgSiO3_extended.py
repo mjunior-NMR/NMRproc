@@ -18,7 +18,7 @@ from ssnmr_proc import bruker as br
 import numpy as np
 from scipy.stats import multivariate_normal,moment
 import nmrglue as ng
-
+import csdmpy as cp
 ## get experimental details
 
 '''=========== Just to get git-repository main directory ================='''
@@ -33,12 +33,16 @@ def get_git_root(path):
 
 # Load experimental data into class ProcData
 data_dir = get_git_root(os.getcwd()) + r'\data\raw\MgO_glasses\25Mg_CMS25_180W\pdata\1'
+base_corrected = np.loadtxt(
+    r'D:\Marcos\IFSC\Python\NMRproc\data\raw\MgO_glasses\25Mg_CMS25_180W\pdata\1\25Mg_CMS25_baseline.txt')
+
+
 pd = br.ProcData(data_dir) # Create pd as object from ProcData class
+pd.data = base_corrected[:,1]+1j*base_corrected[:,2]
+pd.flip()
 
 pd.normalize()
-pd.iFFT()
-pd.ls(pts=1)
-pd.FFT()
+
 exp_spc = pd.to_csdm()
 
 # simproc = sp.SignalProcessor(
@@ -57,8 +61,8 @@ Cq_range = np.linspace(0,25,100)
 eta_range = np.linspace(0,1,10)
 
 
-diso1 = 30; Cq1 = 7.0; sigma1 = 1.5
-diso2 = 16; Cq2 = 6.0; sigma2 = 1.5
+diso1 = 30; Cq1 = 7.0; sigma1 = 1.06
+diso2 = 16; Cq2 = 6.0; sigma2 = 1.1
 
 
 # Create czjzek distribution object for site 1
@@ -133,11 +137,16 @@ sim.methods = [MAS]
 sim.run()
 
 sim_spc_1 = sim.methods[0].simulation
+sim_spc_1.y[0].components = sim_spc_1.y[0].components/abs(np.trapz(sim_spc_1.y[0].components.real))
+
+
 
 sim.spin_systems = system_2
 sim.run()
 
 sim_spc_2 = sim.methods[0].simulation
+sim_spc_2.y[0].components = sim_spc_2.y[0].components/abs(np.trapz(sim_spc_2.y[0].components.real))
+
 
 sim_spc = sim_spc_1*0.44 + sim_spc_2*0.56 
 
@@ -162,5 +171,29 @@ ax.plot(sim_spc.real, color = 'k')
 # plt.xlim([2000,-2000])
 plt.xlabel("$^{25}$Mg-$\delta$ / ppm")
 plt.show()
+
+
+#Save simulation to XRI and csdf formats.
+
+sim_spc.y[0].components.astype('complex64')
+
+
+sim_spc.save(r'simulation_Sen_lowfield.csdf') 
+
+
+
+
+R = sim_spc.y[0].components.real.transpose()
+I = sim_spc.y[0].components.imag.transpose()
+X = sim_spc.x[0].coordinates.value.transpose().reshape(sim_spc.size,1)
+# X = X*pd.reffrq
+
+
+plt.plot(X,R)
+
+np.savetxt(r'simulation_Sen_lowfield.dat',np.concatenate((X,R,I),axis=1))
+
+
+
 
 print("--- %s seconds ---" % (time.time() - start_time))
