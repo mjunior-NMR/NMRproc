@@ -34,7 +34,8 @@ def get_git_root(path):
 # Load experimental data into class ProcData
 data_dir = get_git_root(os.getcwd()) + r'\data\raw\MgO_glasses\25Mg_CMS25_180W\pdata\1'
 base_corrected = np.loadtxt(
-    r'D:\Marcos\IFSC\Python\NMRproc\data\raw\MgO_glasses\25Mg_CMS25_180W\pdata\1\25Mg_CMS25_baseline.txt')
+    get_git_root(os.getcwd()) + 
+    r'\data\raw\MgO_glasses\25Mg_CMS25_180W\pdata\1\25Mg_CMS25_baseline.txt')
 
 
 pd = br.ProcData(data_dir) # Create pd as object from ProcData class
@@ -63,7 +64,7 @@ eta_range = np.linspace(0,1,10)
 
 diso1 = 30; Cq1 = 7.0; sigma1 = 1.06
 diso2 = 16; Cq2 = 6.0; sigma2 = 1.1
-
+figname = r'Sim_lowfield_Extended_Czjzek.png'
 
 # Create czjzek distribution object for site 1
 quad_tensor = {"Cq": Cq1, "eta": 0.01}  # Cq assumed in MHz
@@ -147,8 +148,10 @@ sim.run()
 sim_spc_2 = sim.methods[0].simulation
 sim_spc_2.y[0].components = sim_spc_2.y[0].components/abs(np.trapz(sim_spc_2.y[0].components.real))
 
+sim_spc_1 *= 0.44
+sim_spc_2 *= 0.56
 
-sim_spc = sim_spc_1*0.44 + sim_spc_2*0.56 
+sim_spc = sim_spc_1 + sim_spc_2 
 
 #%% Post processing and plot
 
@@ -161,16 +164,36 @@ sp.FFT(),
 )
 
 sim_spc = simproc.apply_operations(sim_spc)
+
+sim_spc_1 = simproc.apply_operations(sim_spc_1)
+sim_spc_1 /= sim_spc.max()
+
+sim_spc_2 = simproc.apply_operations(sim_spc_2)
+sim_spc_2 /= sim_spc.max()
+
+
 sim_spc /= sim_spc.max()
 
 
 
 fig, ax = plt.subplots(figsize=(6, 5), subplot_kw={"projection": "csdm"}, num=2)
-ax.plot(exp_spc.real)
-ax.plot(sim_spc.real, color = 'k')
-# plt.xlim([2000,-2000])
-plt.xlabel("$^{25}$Mg-$\delta$ / ppm")
-plt.show()
+# ax.plot(exp_spc.real, color = 'k', label = 'experimental')
+ax.plot(sim_spc_1.real, color = 'r', linestyle = (0,(3,1,1,1)), label = 'Mg$^{(IV)}$')
+ax.plot(sim_spc_2.real, color = 'b', linestyle = (0,(3,1,1,1)), label = 'Mg$^{(VI)}$')
+ax.plot(sim_spc.real, color = 'g', linestyle = (0,(3,1,1,1)), label = 'Sum')
+
+#Plot opptions
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_visible(False)
+ax.set_yticks([])
+plt.xlim([2000,-2000])
+plt.ylim([-0.05,1.2])
+plt.xlabel("$^{25}$Mg-$\delta$ / ppm", fontsize = 14)
+plt.ylabel("")
+plt.savefig(figname, dpi=300)
+plt.legend(loc='center right')
+# plt.show()
 
 
 #Save simulation to XRI and csdf formats.
@@ -178,20 +201,20 @@ plt.show()
 sim_spc.y[0].components.astype('complex64')
 
 
-sim_spc.save(r'simulation_Sen_lowfield.csdf') 
+
+# sim_spc.save(r'simulation_Sen_lowfield.csdf') 
 
 
 
+# R = sim_spc.y[0].components.real.transpose()
+# I = sim_spc.y[0].components.imag.transpose()
+# X = sim_spc.x[0].coordinates.value.transpose().reshape(sim_spc.size,1)
+# # X = X*pd.reffrq
 
-R = sim_spc.y[0].components.real.transpose()
-I = sim_spc.y[0].components.imag.transpose()
-X = sim_spc.x[0].coordinates.value.transpose().reshape(sim_spc.size,1)
-# X = X*pd.reffrq
 
+# # plt.plot(X,R)
 
-plt.plot(X,R)
-
-np.savetxt(r'simulation_Sen_lowfield.dat',np.concatenate((X,R,I),axis=1))
+# np.savetxt(r'simulation_Sen_lowfield.dat',np.concatenate((X,R,I),axis=1))
 
 
 
