@@ -54,7 +54,7 @@ class ProcData():
 #%%  Normalize data by max intensity or area within region
     def normalize(self,method = 'intensity', region = tuple()):        
         if method == 'intensity':
-            norm = 1/max(self.data.real)            
+            norm = 1/self.data.real.max()            
             # self.data.imag = self.data.imag*norm  # real and imaginary are normalized by intensity of real data
             self.data = self.data*norm
             # self.data.real = self.data.real*norm
@@ -66,7 +66,7 @@ class ProcData():
             self.data.real = self.data.real*norm
             self.data.imag = self.data.imag*norm            
             self.data = self.data*norm
-        elif method == '01':
+        elif method == '01': #Normaliza entre zero e um
             minimo = min(self.data.real)
             self.data.real = self.data.real-minimo
             self.data.imag = self.data.imag-minimo
