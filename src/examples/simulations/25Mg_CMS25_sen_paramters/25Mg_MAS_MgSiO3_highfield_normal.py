@@ -38,26 +38,6 @@ exp_spc = cp.load(data_dir)
 exp_spc.x[0].to("ppm", "nmr_frequency_ratio")
 exp_spc /= exp_spc.real.max()
 
-# simproc = sp.SignalProcessor(
-# operations=[
-# sp.baseline.Polynomial(polynomial_dictionary = {'c0':0.05, 'c2':-4e-9})
-# ]
-# )
-
-# exp_spc = simproc.apply_operations(exp_spc.copy())
-exp_spc /= exp_spc.real.max()
-
-# simproc = sp.SignalProcessor(
-# operations=[
-# sp.baseline.Polynomial(polynomial_dictionary = {'c0':0.05, 'c2':-4e-9})
-# ]
-# )
-
-# exp_spc = simproc.apply_operations(exp_spc.copy())
-exp_spc /= exp_spc.real.max()
-
-
-
 # Define ranges for Cq and eta
 Cq_range = np.linspace(0,25,100)
 eta_range = np.linspace(0,1,10)
@@ -122,7 +102,7 @@ MAS = BlochDecayCTSpectrum(
     spectral_dimensions=[
         SpectralDimension(spectral_width=250000, reference_offset=0)  # values in Hz
     ],
-    magnetic_flux_density = 35.2
+    magnetic_flux_density = 14.1
 )
 
 sim = Simulator()
@@ -171,6 +151,10 @@ sim_spc /= sim_spc.max()
 
 #%% Plot
 scale_factor = 1.04 
+
+sim_spc.x[0].to("ppm", "nmr_frequency_ratio")
+sim_spc_1.x[0].to("ppm", "nmr_frequency_ratio")
+sim_spc_2.x[0].to("ppm", "nmr_frequency_ratio")
 
 fig, ax = plt.subplots(figsize=(6, 5), subplot_kw={"projection": "csdm"}, num=2)
 ax.plot(exp_spc.real, color = 'k', label = 'experimental')

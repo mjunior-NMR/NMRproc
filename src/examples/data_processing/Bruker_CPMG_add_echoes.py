@@ -72,8 +72,8 @@ new_TD = FID[1].size
 
 sum_fid = np.zeros(new_TD,dtype = 'complex128')
 
-for j in range(round(echoes)):        
-    sum_fid += FID[j]
+for j in range(round(echoes-1)):        
+    sum_fid += FID[j+1]
 
 # plt.plot(time[0:new_TD],sum_fid)
 
@@ -112,4 +112,4 @@ ax.plot(envelope.real)
 ax.plot(spiklet.real)
 nmrplt.nmrstyle(ax)
 
-envelope.save(r'D:\Marcos\IFSC\Python\NMRproc\data\processed\25Mg NMR Phill\CMS25_cpmg_envelope.csdf')
+envelope.save(r'D:\Marcos\IFSC\Dados\Bruker\Processing\25Mg NMR Phill\CMS25_cpmg_envelope.csdf')

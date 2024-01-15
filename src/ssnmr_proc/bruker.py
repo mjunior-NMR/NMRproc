@@ -63,18 +63,12 @@ class ProcData():
             if region == ():
                 raise ValueError(r'Region must be informed in Tuple format')
             norm = 1/self.area(region)
-            self.data.real = self.data.real*norm
-            self.data.imag = self.data.imag*norm            
             self.data = self.data*norm
         elif method == '01': #Normaliza entre zero e um
             minimo = min(self.data.real)
-            self.data.real = self.data.real-minimo
-            self.data.imag = self.data.imag-minimo
             self.data = self.data-minimo
             
             norm = 1/max(self.data.real)
-            self.data.real = self.data.real*norm
-            self.data.imag = self.data.imag*norm            
             self.data = self.data*norm                    
         else:
             raise ValueError(r'method must be either "intensity" or "area"!')
@@ -134,7 +128,7 @@ class ProcData():
                 reciprocal={'quantity_name': 'time', 'label': self.udic[0]['label']}
                 )
             csdm_spec = cp.CSDM(dependent_variables=[dv], dimensions=[dim])
-            csdm_spec.dimensions[0].to("ppm", "nmr_frequency_ratio")
+            csdm_spec.dimensions[0].to("ppm", "nmr_frequency_ratio")            
             return csdm_spec
         except:
             raise ImportError("csdmpy must be installed to use this function. Please install by typing 'pip install csdmpy' in the terminal.")

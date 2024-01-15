@@ -158,7 +158,7 @@ sim_spc = sim_spc_1 + sim_spc_2
 simproc = sp.SignalProcessor(
 operations=[
 sp.IFFT(),
-sp.apodization.Gaussian(FWHM="1000 Hz"),
+sp.apodization.Gaussian(FWHM="100 ppm"),
 sp.FFT(),
 ]
 )
@@ -177,7 +177,7 @@ sim_spc /= sim_spc.max()
 
 
 fig, ax = plt.subplots(figsize=(6, 5), subplot_kw={"projection": "csdm"}, num=2)
-# ax.plot(exp_spc.real, color = 'k', label = 'experimental')
+ax.plot(exp_spc.real, color = 'k', label = 'experimental')
 ax.plot(sim_spc_1.real, color = 'r', linestyle = (0,(3,1,1,1)), label = 'Mg$^{(IV)}$')
 ax.plot(sim_spc_2.real, color = 'b', linestyle = (0,(3,1,1,1)), label = 'Mg$^{(VI)}$')
 ax.plot(sim_spc.real, color = 'g', linestyle = (0,(3,1,1,1)), label = 'Sum')
