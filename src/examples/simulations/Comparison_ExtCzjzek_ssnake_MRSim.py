@@ -39,6 +39,7 @@ diso = 30; Cq= 7.7; eps_val = 0.879
 quad_tensor = {"Cq": Cq, "eta": 0.01}  # Cq assumed in MHz
 model_quad = ExtCzjzekDistribution(quad_tensor, eps= eps_val)
 Cq_dist, eta_dist, cz_amp = model_quad.pdf(pos=[Cq_range, eta_range])
+print("ssNake ExtCzjzek sigma is %s MHz" % (round(model_quad.ssNake_sigma*100)/100)) #MRsim code was modified to get ssNake parameter (2*rho)
 
 fig,czax = plt.subplots(1, num = 1)
 czax.plot(Cq_range, np.sum(cz_amp, axis = 0))
