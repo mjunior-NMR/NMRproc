@@ -46,14 +46,9 @@ pd.normalize()
 
 exp_spc = pd.to_csdm()
 
-# simproc = sp.SignalProcessor(
-# operations=[
-# sp.baseline.Polynomial(polynomial_dictionary = {'c0':0.05, 'c2':-4e-9})
-# ]
-# )
 
-# exp_spc = simproc.apply_operations(exp_spc.copy())
-exp_spc /= exp_spc.real.max()
+
+
 
 
 

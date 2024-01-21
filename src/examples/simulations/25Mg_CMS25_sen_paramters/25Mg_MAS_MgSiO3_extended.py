@@ -158,7 +158,7 @@ sim_spc = sim_spc_1 + sim_spc_2
 simproc = sp.SignalProcessor(
 operations=[
 sp.IFFT(),
-sp.apodization.Gaussian(FWHM="100 ppm"),
+sp.apodization.Gaussian(FWHM="1000 Hz"),
 sp.FFT(),
 ]
 )
