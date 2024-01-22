@@ -21,4 +21,4 @@ def nmrstyle(ax, nucleus = None):
     else:
         ax.set_xlabel(r'Chemical shift /ppm', fontsize = 16)
     plt.xticks(fontsize=14)
-    print('Plot has been converted to NMR style!')
+    # print('Plot has been converted to NMR style!')

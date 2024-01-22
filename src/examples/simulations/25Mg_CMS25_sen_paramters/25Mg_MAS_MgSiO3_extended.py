@@ -124,7 +124,7 @@ MAS = BlochDecayCTSpectrum(
     channels=["25Mg"],
     rotor_frequency=20000,  # in Hz
     spectral_dimensions=[
-        SpectralDimension(spectral_width=pd.udic[0]['sw'], reference_offset=pd.udic[0]['car'])  # values in Hz
+        SpectralDimension(count = 8192, spectral_width=pd.udic[0]['sw'], reference_offset=pd.udic[0]['car'])  # values in Hz
     ],
     magnetic_flux_density = 14.1
 )
@@ -176,6 +176,7 @@ sim_spc /= sim_spc.max()
 
 
 
+
 fig, ax = plt.subplots(figsize=(6, 5), subplot_kw={"projection": "csdm"}, num=2)
 ax.plot(exp_spc.real, color = 'k', label = 'experimental')
 ax.plot(sim_spc_1.real, color = 'r', linestyle = (0,(3,1,1,1)), label = 'Mg$^{(IV)}$')
@@ -195,6 +196,22 @@ plt.savefig(figname, dpi=300)
 plt.legend(loc='center right')
 # plt.show()
 
+exp_spc.dependent_variables[0].name = 'Experimenrtal'
+sim_spc.dependent_variables[0].name = 'Simulation'
+sim_spc_1.dependent_variables[0].name = 'Comp #1'
+sim_spc_2.dependent_variables[0].name = 'Comp #2'
+
+
+
+export = cp.CSDM(dependent_variables = [exp_spc.dependent_variables[0],
+                                        cp.as_dependent_variable(np.flip(sim_spc.y[0].components), name = 'Simulation'),
+                                        cp.as_dependent_variable(np.flip(sim_spc_1.y[0].components), name = 'Comp #1'),
+                                        cp.as_dependent_variable(np.flip(sim_spc_2.y[0].components), name = 'Comp #2')],
+                 dimensions = exp_spc.dimensions)
+export.save(r'D:\Marcos\IFSC\Dados\Processing\25Mg NMR Phill\simulation_results\CMS25_ext_fitdata_2comps.csdf')
+export.save(r'D:\Marcos\IFSC\Dados\Processing\25Mg NMR Phill\simulation_results\CMS25_ext_fitdata.csdf')
+
+# export.plot()
 
 #Save simulation to XRI and csdf formats.
 
