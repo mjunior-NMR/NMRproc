@@ -6,22 +6,22 @@ Created on Tue Sep  5 15:27:29 2023
 """
 import numpy as np
 import nmrglue as ng
-import matplotlib.pyplot as plt
-from matplotlib.ticker import (MultipleLocator)
+from ssnmr_proc import nmrplot
+
 
 class ProcData(): 
     """ A Class to work with Agilent raw data:
         spc = ProcData('data_dir') will return:
             spc.dic --> nmrglue dictionary with all acqu ans procs metadata
-            spc.rdata --> Real spectrum
-            spc.idata --> Imag spectrum
+            spc.data --> Real spectrum
+            spc.fid --> FID
             spc.udic = nmrglue universal dictionary
             spc.ppm_scale = ppm axis
             spc.normalize(method = 'area' or 'intensity', range = 'full' or a tuple with integration region) Normalize spectrum by maximum or area
             spc.plot() --> plot spectrum with NMR-like style"""
     def __init__(self,data_dir):
-        #Data dir must be a directory with processed Bruker 1r or 2rr files.
-        self.dic, tmp = ng.agilent.read_pdata(data_dir, scale_data=True,all_components = True)
+        #Data dir must be a directory with agilent 1D or 2D fid.
+        self.dic, tmp = ng.agilent.read_pdata(data_dir + r'\fid', scale_data=True, all_components = True)
         self.rdata = tmp[0] # Real spectrum
         self.idata = tmp[1] # Imag spectrum
         self.data = tmp[0]+1j*tmp[1]
