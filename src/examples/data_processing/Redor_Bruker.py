@@ -30,7 +30,7 @@ nspec = spc.dic['acqu2s']['TD']
 area = np.zeros(nspec)
 
 for i in range(0,nspec):
-    data = spc.data[:,i]
+    data = spc.data.real[:,i]
     p1 = spc.uc(str(region[0])+' ppm') #convert from ppm_scale to points p1 and p2
     p2 = spc.uc(str(region[1])+' ppm')
     reduced_rdata = data.real[min(p1,p2):max(p1,p2)]
@@ -38,14 +38,23 @@ for i in range(0,nspec):
     area[i] = abs(np.trapz(reduced_rdata,reduced_ppm_scale))
 
 DS = np.zeros(int(nspec/2))
+NTR = np.zeros(int(nspec/2))
+
+k = 0
 
 for i in range(0,nspec,2):
-    DS[i] = (area[i+1]-area[i])/area[i+1]
+    print(i)
+    DS[k] = (area[i+1]-area[i])/area[i+1]
+    NTR[k] = 1/spc.dic['acqus']['CNST'][31]*1e3*i+2
+    k = k+1
+
+
 
 fig,ax = plt.subplots()
-ax.plot(DS)
+ax.scatter(NTR,DS)
     
-    
+
+a = list(range(0,nspec,2))
 
 
 
