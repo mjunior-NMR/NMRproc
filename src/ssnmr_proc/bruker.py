@@ -24,14 +24,15 @@ class ProcData():
         self.dic, tmp = ng.bruker.read_pdata(data_dir, scale_data=True,all_components = True)
         self.data = tmp[0]+1j*tmp[1]        
         self.udic = ng.bruker.guess_udic(self.dic, self.data.real) # Universal nmrglue dictionary
-        self.uc = ng.fileiobase.uc_from_udic(self.udic, dim = 0)        
+        self.uc = ng.fileiobase.uc_from_udic(self.udic, dim = 1)        
         self.ppm_scale = self.uc.ppm_scale() # ppm axis        
         self.hz_scale = self.uc.hz_scale() # hz axis
         
         if self.data.ndim == 2:
             self.uc1 = ng.fileiobase.uc_from_udic(self.udic, dim=1)
             self.ppm_scale_1 = self.uc1.ppm_scale() # ppm axis        
-            self.hz_scale_1 = self.uc1.hz_scale() # hz axis            
+            self.hz_scale_1 = self.uc1.hz_scale() # hz axis    
+            self.data = self.data.transpose()
         
         self.fid = ng.process.proc_base.ifft(tmp[0]+1j*tmp[1])
         self.udic[0]['time'] = False
