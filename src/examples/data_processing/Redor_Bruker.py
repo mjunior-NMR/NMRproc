@@ -43,7 +43,6 @@ NTR = np.zeros(int(nspec/2))
 k = 0
 
 for i in range(0,nspec,2):
-    print(i)
     DS[k] = (area[i+1]-area[i])/area[i+1]
     NTR[k] = 1/spc.dic['acqus']['CNST'][31]*1e3*i+2
     k = k+1
