@@ -26,8 +26,9 @@ num_points = dic['NP']
 num_points = 8192
 sw = 20000
 
+#%%
 freq = np.linspace(-sw/2,sw/2,num_points).reshape(num_points,)
-# ppm = (freq)/exp_dic['acqus']['SFO1']
+ppm = (freq)/exp_dic['acqus']['O1']
 # freq
 a = np.arange(0,8192)
 c = a**2
