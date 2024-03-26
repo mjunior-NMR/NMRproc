@@ -1,0 +1,100 @@
+# Fri May 19 10:14:53 2023
+#$$PROBEIDENTIFIER=H129987_0009
+#$$PROBENAME=PH MASDVT 600S3 BL2.5 X/Y/H Trigamma2
+#$$SHIMID=292722
+#
+# Active Shim Gradients
+#
+Z           		10000           
+Z2          		0               
+Z3          		0               
+Z4          		0               
+Z5          		0               
+Z6          		0               
+Z7          		0               
+Z8          		0               
+X           		5000            
+XZ          		0               
+XZ2         		0               
+XZ3         		0               
+XZ4         		0               
+XZ5         		0               
+Y           		-5000           
+YZ          		0               
+YZ2         		0               
+YZ3         		0               
+YZ4         		0               
+YZ5         		0               
+XY          		0               
+XYZ         		20000           
+XYZ2        		0               
+XYZ3        		0               
+XYZ4        		0               
+XYZ5        		0               
+(X2-Y2)     		10000           
+(X2-Y2)Z    		0               
+(X2-Y2)Z2   		0               
+(X2-Y2)Z3   		0               
+(X2-Y2)Z4   		0               
+(X2-Y2)Z5   		0               
+X3          		0               
+X3Z         		0               
+Y3          		0               
+Y3Z         		0               
+#
+# Lock Parameter
+#
+FIELD		3142.850
+LOCKPHASE		100.499 
+LOCKPOWER		-28.000 
+LOCKGAIN		102.000 
+LOCKDC		-75.000 
+LOCKSHIFT		2.030   
+LOOPGAIN		-10.000 
+LOOPTIME		0.100   
+LOOPFILTER		100.000 
+#
+IEEE64_VERSION_CODE 1
+#
+# Shim currents 
+#
+SHIM_SETTING [1 ]  4850.00000000   
+SHIM_SETTING [2 ]  0.00000000      
+SHIM_SETTING [3 ]  580.48400000    
+SHIM_SETTING [4 ]  -0.00000000     
+SHIM_SETTING [5 ]  676.61800000    
+SHIM_SETTING [6 ]  -676.61800000   
+SHIM_SETTING [7 ]  -225.33400000   
+SHIM_SETTING [8 ]  225.33300000    
+SHIM_SETTING [9 ]  -376.29300000   
+SHIM_SETTING [10]  376.29300000    
+SHIM_SETTING [11]  0.00000000      
+SHIM_SETTING [12]  0.00000000      
+SHIM_SETTING [13]  0.00000000      
+SHIM_SETTING [14]  0.00000000      
+SHIM_SETTING [15]  4515.39000000   
+SHIM_SETTING [16]  4515.39000000   
+SHIM_SETTING [17]  5000.00000000   
+SHIM_SETTING [18]  5000.00000000   
+SHIM_SETTING [19]  2366.36900000   
+SHIM_SETTING [20]  2366.36900000   
+SHIM_SETTING [21]  6469.42900000   
+SHIM_SETTING [22]  6469.42900000   
+SHIM_SETTING [23]  10000.00000000  
+SHIM_SETTING [24]  10000.00000000  
+SHIM_SETTING [25]  3911.73600000   
+SHIM_SETTING [26]  3911.73600000   
+SHIM_SETTING [27]  0.00000000      
+SHIM_SETTING [28]  -4515.39000000  
+SHIM_SETTING [29]  4469.62000000   
+SHIM_SETTING [30]  -4469.62000000  
+SHIM_SETTING [31]  -5000.00000000  
+SHIM_SETTING [32]  -4515.39000000  
+SHIM_SETTING [33]  20000.00000000  
+SHIM_SETTING [34]  -20000.00000000 
+SHIM_SETTING [35]  14098.31000000  
+SHIM_SETTING [36]  -14098.31000000 
+SHIM_SETTING [37]  -2366.36900000  
+SHIM_SETTING [38]  -2366.36900000  
+SHIM_SETTING [39]  -5000.00000000  
+SHIM_SETTING [40]  0.00000000      

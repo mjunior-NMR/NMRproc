@@ -1,23 +1,21 @@
 spinsys {
-channels 13C 1H
-nuclei 13C 1H 1H 1H
-shift 1 20p 0 0 0 0 0
-jcoupling 1 2 120 0 0 0 0 0
-jcoupling 1 3 125 0 0 0 0 0
-jcoupling 1 4 125 0 0 0 0 0
+channels 31P
+nuclei 31P 63Cu
+shift 1 -6p 0 0 0 0 0
+jcoupling 1 2 1675 0 0 0 0 0
+quadrupole 2 2 3e6 0 0 0 0
 }
 
 par {
-   spin_rate        0
-
-   np               2048
-   proton_frequency 400e6
+   spin_rate        30000
+   np               8192
+   proton_frequency 600e6
    start_operator   I1x
    detect_operator  I1p
    method           direct
-   crystal_file     alpha0beta0
-   gamma_angles     1
-   sw               20000
+   crystal_file     rep100
+   gamma_angles     10
+   sw               spin_rate*gamma_angles
    variable tsw     1e6/sw
    verbose          1101
 }
@@ -39,8 +37,7 @@ proc main {} {
    global par
   
    set f [fsimpson]
-   faddlb $f 20 0
-   fzerofill $f 8192
+   faddlb $f 30 0   
    fft $f
    fsave $f $par(name).spe
 }

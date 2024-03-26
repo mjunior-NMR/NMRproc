@@ -1,0 +1,16 @@
+##TITLE= Parameter file, TopSpin 4.0.6
+##JCAMPDX= 5.0
+##DATATYPE= Parameter Values
+##NPOINTS= 1	$$ modification sequence number
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= nmr
+$$ 2023-05-18 16:55:48.203 -0300  nmr@CZC7197C30
+$$ C:\Bruker\TopSpin4.0.6\data\Silvio/Complexo_amarelo/3/pdata/1/outd
+$$ process C:\Bruker\TopSpin4.0.6\prog\mod\edparproc.exe
+##$CURPLOT= <>
+##$CURPRIN= <$>
+##$DFORMAT= <normdp>
+##$LAYOUT= <+/1D_BB.xwp>
+##$LFORMAT= <normlp>
+##$PFORMAT= <normpl>
+##END=

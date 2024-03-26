@@ -1,0 +1,18 @@
+##TITLE= Audit trail, TopSpin 4.0.6
+##JCAMPDX= 5.01
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= nmr
+$$ C:/Bruker/TopSpin4.0.6/data/Silvio/Complexo_amarelo/6/pdata/999/auditp.txt
+##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, PROCESS, VERSION, WHAT)
+(   1,<2023-05-18 19:46:38.662 -0300>,<nmr>,<CZC7197C30>,<poptau>,<TopSpin 4.0.6>,
+      <created by poptau
+       data hash MD5: 756912
+       E5 FC 2C 16 DB 74 73 E6 0D 98 CC 8A C5 92 A8 EF>)
+(   2,<2023-05-18 21:34:04.417 -0300>,<nmr>,<CZC7197C30>,<proc1d>,<TopSpin 4.0.6>,
+      <pk fgphup PHC0 = 71.7 PHC1 = 0 
+       data hash MD5: 756912
+       60 30 A5 60 16 08 F3 80 0A 42 48 38 26 EE B0 55>)
+##END=
+
+$$ hash MD5
+$$ 43 A9 59 CD 2C 2B 0E 5B 7E 4B E8 C4 61 8A FD 6E

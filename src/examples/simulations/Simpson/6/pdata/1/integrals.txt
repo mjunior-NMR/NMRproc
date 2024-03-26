@@ -1,0 +1,9 @@
+   Current data set:
+   NAME =	Complexo_amarelo	EXPNO =	6	PROCNO = 1
+   DU   =	D:/Marcos/IFSC/Orientacoes/Silvio/Dados
+
+   Number   Integrated Region     Integral
+     1    128.135    126.929        -0.25912
+     2    121.655    120.488         0.14322
+     3   -125.390   -126.821         0.21114
+     4   -132.321   -134.619         0.90476
