@@ -17,15 +17,18 @@ spc = br.ProcData(data_dir)
 
 spc.normalize()
 
+
+
 ax = plt.subplot()
 ax.plot(spc.ppm_scale,spc.data.real[:,48])
 ax.set_xlim([20,-40])
 
 
-
 region = (-40,20)
 
 nspec = spc.dic['acqu2s']['TD']
+
+area = spc.area
 
 area = np.zeros(nspec)
 

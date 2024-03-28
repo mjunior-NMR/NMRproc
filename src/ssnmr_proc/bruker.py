@@ -39,7 +39,7 @@ class ProcData():
         self.udic[0]['freq'] = True
         self.reffrq = self.dic['acqus']['SFO1']
 
-#%% Get area of an spectral region defined from a tupl variable
+#%% Get area of an spectral region in ppm defined from a tupl variable
     def area(self,region = tuple()):
         if len(region) == 0:
             area = abs(np.trapz(self.data.real,x = self.ppm_scale))            
@@ -49,6 +49,22 @@ class ProcData():
             reduced_rdata = self.data.real[min(p1,p2):max(p1,p2)]
             reduced_ppm_scale = self.ppm_scale[min(p1,p2):max(p1,p2)]
             area = abs(np.trapz(reduced_rdata,reduced_ppm_scale))
+        return area
+
+#%% Get list of areas in f2 dimention for 2D data
+    def f2area(self,region = tuple()):
+        if len(region) == 0:
+            area = abs(np.trapz(self.data.real,x = self.ppm_scale))            
+        else:
+            for i in range(0,nspec):
+                data = spc.data.real[:,i]
+                p1 = spc.uc(str(region[0])+' ppm') #convert from ppm_scale to points p1 and p2
+                p2 = spc.uc(str(region[1])+' ppm')
+                reduced_rdata = data.real[min(p1,p2):max(p1,p2)]
+                reduced_ppm_scale = spc.ppm_scale[min(p1,p2):max(p1,p2)]
+                area[i] = abs(np.trapz(reduced_rdata,reduced_ppm_scale))
+
+
         return area
 
 
