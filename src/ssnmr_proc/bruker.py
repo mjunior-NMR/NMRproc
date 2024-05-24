@@ -8,6 +8,7 @@ import numpy as np
 import nmrglue as ng
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (MultipleLocator)
+import os
 
 class ProcData(): 
     """ A Class to work with Bruker pre-processed data:
@@ -19,14 +20,17 @@ class ProcData():
             spc.ppm_scale = ppm axis
             spc.normalize(method = 'area' or 'intensity', range = 'full' or a tuple with integration region) Normalize spectrum by maximum or area
             spc.plot() --> plot spectrum with NMR-like style"""
-    def __init__(self,data_dir):
+    def __init__(self,data_dir):        
         #Data dir must be a directory with processed Bruker 1r or 2rr files.
         self.dic, tmp = ng.bruker.read_pdata(data_dir, scale_data=True,all_components = True)
         self.data = tmp[0]+1j*tmp[1]        
         self.udic = ng.bruker.guess_udic(self.dic, self.data.real) # Universal nmrglue dictionary
-        self.uc = ng.fileiobase.uc_from_udic(self.udic, dim = 1)        
+        self.uc = ng.fileiobase.uc_from_udic(self.udic, dim = 0)        
         self.ppm_scale = self.uc.ppm_scale() # ppm axis        
         self.hz_scale = self.uc.hz_scale() # hz axis
+        parent_dir = data_dir.replace(r'\pdata\1','\\')
+        if os.path.isfile(parent_dir + 'vdlist') == True:
+            self.vdlist = np.loadtxt(parent_dir + 'vdlist')
         
         if self.data.ndim == 2:
             self.uc1 = ng.fileiobase.uc_from_udic(self.udic, dim=1)
@@ -53,20 +57,43 @@ class ProcData():
 
 #%% Get list of areas in f2 dimention for 2D data
     def f2area(self,region = tuple()):
+        nspec = self.dic['acqu2s']['TD']
+        area = np.zeros(nspec)
         if len(region) == 0:
-            area = abs(np.trapz(self.data.real,x = self.ppm_scale))            
+            for i in range(0,nspec):
+                data = self.data.real[:,i]
+                area[i] = abs(np.trapz(data,self.ppm_scale))            
         else:
             for i in range(0,nspec):
-                data = spc.data.real[:,i]
-                p1 = spc.uc(str(region[0])+' ppm') #convert from ppm_scale to points p1 and p2
-                p2 = spc.uc(str(region[1])+' ppm')
+                data = self.data.real[:,i]
+                p1 = self.uc(str(region[0])+' ppm') #convert from ppm_scale to points p1 and p2
+                p2 = self.uc(str(region[1])+' ppm')
                 reduced_rdata = data.real[min(p1,p2):max(p1,p2)]
-                reduced_ppm_scale = spc.ppm_scale[min(p1,p2):max(p1,p2)]
+                reduced_ppm_scale = self.ppm_scale[min(p1,p2):max(p1,p2)]
                 area[i] = abs(np.trapz(reduced_rdata,reduced_ppm_scale))
-
-
         return area
 
+#%% Separate redor DS and NTr from areas or from fukk data
+    def redor(self,region = tuple()):
+        import numpy as np
+        
+        nspec = self.dic['acqu2s']['TD']
+        
+        if len(region) == 0:
+            area = np.max(self.data.real[:,0:nspec],axis=0)
+        else:
+            area = self.f2area(region)
+        
+        
+        DS = np.zeros(int(nspec/2))
+        NTR = np.zeros(int(nspec/2))
+        
+        k = 0
+        for i in range(0,nspec,2):
+            DS[k] = (area[i+1]-area[i])/area[i+1]
+            NTR[k] = 1/self.dic['acqus']['CNST'][31]*(i+2) # in 'seconds'
+            k = k+1
+        return DS,NTR
 
 #%%  Normalize data by max intensity or area within region
     def normalize(self,method = 'intensity', region = tuple()):        

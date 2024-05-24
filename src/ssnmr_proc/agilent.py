@@ -7,10 +7,18 @@ Created on Tue Sep  5 15:27:29 2023
 import numpy as np
 import nmrglue as ng
 from ssnmr_proc import nmrplot
+import os
+import json
+import csdmpy as cp
+import matplotlib.pyplot as plt
+from matplotlib.ticker import (MultipleLocator)
 
 
-class ProcData(): 
-    """ A Class to work with Agilent raw data:
+
+class ssNakeProc(): 
+    """ A Class to work with Agilent data pre-processed at ssNake:
+        input - data_dir - the Agilent folder with ssNake json inside.
+        json file must be saved with the same name as the agilent folder.
         spc = ProcData('data_dir') will return:
             spc.dic --> nmrglue dictionary with all acqu ans procs metadata
             spc.data --> Real spectrum
@@ -18,48 +26,121 @@ class ProcData():
             spc.udic = nmrglue universal dictionary
             spc.ppm_scale = ppm axis
             spc.normalize(method = 'area' or 'intensity', range = 'full' or a tuple with integration region) Normalize spectrum by maximum or area
-            spc.plot() --> plot spectrum with NMR-like style"""
+            spc.plot() --> plot spectrum with NMR-like style
+            spc.csdm_spec --> csdm spectrum"""
+            
     def __init__(self,data_dir):
         #Data dir must be a directory with agilent 1D or 2D fid.
-        self.dic, tmp = ng.agilent.read_pdata(data_dir + r'\fid', scale_data=True, all_components = True)
-        self.rdata = tmp[0] # Real spectrum
-        self.idata = tmp[1] # Imag spectrum
-        self.data = tmp[0]+1j*tmp[1]
-        self.udic = ng.bruker.guess_udic(self.dic, self.rdata) # Universal nmrglue dictionary
+        
+        file_dir = data_dir + r'\\' + os.path.split(data_dir)[1].replace('.fid','.json')
+        f = f = open(file_dir)
+
+        spec = json.load(f)
+        data = np.array(spec['dataReal'][0])+1j*np.array(spec['dataImag'][0])
+        npts = data.size
+        Hz_scale = spec['xaxArray'][0]
+
+        dv = cp.as_dependent_variable(data, unit="")
+        dim = cp.LinearDimension(
+            count = npts, 
+            origin_offset = f'{spec["freq"][0]} Hz',  
+            #coordinates_offset = f'{spec["metaData"]["Offset [Hz]"]} Hz',
+            coordinates_offset = f'{spec["freq"][0]-spec["ref"][0]} Hz',
+            increment = f'{Hz_scale[1]-Hz_scale[0]} Hz',
+            complex_fft=True,
+            label="Frequency",
+            reciprocal={'quantity_name': 'time'}
+            )
+        self.csdm_spec = cp.CSDM(dependent_variables=[dv], dimensions=[dim])
+        self.csdm_spec.dimensions[0].to("ppm", "nmr_frequency_ratio") 
+        self.udic = list([])
+        self.udic.append(dict())
+        self.udic[0]['size']     = npts
+        self.udic[0]['complex']  = True
+        self.udic[0]['freq'] = True
+        self.udic[0]['sw']       = spec['sw'][0]
+        self.udic[0]['obs']      = spec['freq'][0]*1e-6
+        self.udic[0]['car']      = spec["freq"][0]-spec["ref"][0]
+        self.udic[0]['label']    = ''
         self.uc = ng.fileiobase.uc_from_udic(self.udic) 
         self.ppm_scale = self.uc.ppm_scale() # ppm axis
         self.hz_scale = self.uc.hz_scale() # ppm axis
-        self.fid = ng.process.proc_base.ifft(tmp[0]+1j*tmp[1])
+        self.fid = ng.process.proc_base.ifft(self.data)
         self.udic[0]['time'] = False
-        self.udic[0]['freq'] = True
+        
         self.reffrq = self.dic['acqus']['SFO1']
 
-#%% Get area of an spectral region defined from a tupl variable
+#%% Get area of an spectral region in ppm defined from a tupl variable
     def area(self,region = tuple()):
         if len(region) == 0:
-            area = abs(np.trapz(self.rdata,x = self.ppm_scale))            
+            area = abs(np.trapz(self.data.real,x = self.ppm_scale))            
         else:
             p1 = self.uc(str(region[0])+' ppm') #convert from ppm_scale to points p1 and p2
             p2 = self.uc(str(region[1])+' ppm')
-            reduced_rdata = self.rdata[min(p1,p2):max(p1,p2)]
+            reduced_rdata = self.data.real[min(p1,p2):max(p1,p2)]
             reduced_ppm_scale = self.ppm_scale[min(p1,p2):max(p1,p2)]
             area = abs(np.trapz(reduced_rdata,reduced_ppm_scale))
         return area
 
+#%% Get list of areas in f2 dimention for 2D data
+    def f2area(self,region = tuple()):
+        nspec = self.dic['acqu2s']['TD']
+        area = np.zeros(nspec)
+        if len(region) == 0:
+            for i in range(0,nspec):
+                data = self.data.real[:,i]
+                area[i] = abs(np.trapz(data,self.ppm_scale))            
+        else:
+            for i in range(0,nspec):
+                data = self.data.real[:,i]
+                p1 = self.uc(str(region[0])+' ppm') #convert from ppm_scale to points p1 and p2
+                p2 = self.uc(str(region[1])+' ppm')
+                reduced_rdata = data.real[min(p1,p2):max(p1,p2)]
+                reduced_ppm_scale = self.ppm_scale[min(p1,p2):max(p1,p2)]
+                area[i] = abs(np.trapz(reduced_rdata,reduced_ppm_scale))
+        return area
+
+#%% Separate redor DS and NTr from areas or from fukk data
+    def redor(self,region = tuple()):
+        import numpy as np
+        
+        nspec = self.dic['acqu2s']['TD']
+        
+        if len(region) == 0:
+            area = np.max(self.data.real[:,0:nspec],axis=0)
+        else:
+            area = self.f2area(region)
+        
+        
+        DS = np.zeros(int(nspec/2))
+        NTR = np.zeros(int(nspec/2))
+        
+        k = 0
+        for i in range(0,nspec,2):
+            DS[k] = (area[i+1]-area[i])/area[i+1]
+            NTR[k] = 1/self.dic['acqus']['CNST'][31]*(i+2) # in 'seconds'
+            k = k+1
+        return DS,NTR
 
 #%%  Normalize data by max intensity or area within region
     def normalize(self,method = 'intensity', region = tuple()):        
         if method == 'intensity':
-            norm = 1/max(self.rdata)            
-            self.idata = self.idata*norm  # real and imaginary are normalized by intensity of real data
+            norm = 1/self.data.real.max()            
+            # self.data.imag = self.data.imag*norm  # real and imaginary are normalized by intensity of real data
             self.data = self.data*norm
-            self.rdata = self.rdata*norm
+            # self.data.real = self.data.real*norm
             
         elif method == 'area':
-            norm = self.area(region)
-            self.rdata = self.rdata/norm
-            self.idata = self.idata/norm            
-            self.data = self.data/norm
+            if region == ():
+                raise ValueError(r'Region must be informed in Tuple format')
+            norm = 1/self.area(region)
+            self.data = self.data*norm
+        elif method == '01': #Normaliza entre zero e um
+            minimo = min(self.data.real)
+            self.data = self.data-minimo
+            
+            norm = 1/max(self.data.real)
+            self.data = self.data*norm                    
         else:
             raise ValueError(r'method must be either "intensity" or "area"!')
                 
@@ -72,7 +153,7 @@ class ProcData():
              line_color = 'k',
              font_name = 'Times new roman'):
         
-        axis.plot(self.ppm_scale, self.rdata, color = line_color)
+        axis.plot(self.ppm_scale, self.data.real, color = line_color)
         axis.set_yticks([])
         axis.spines['top'].set_visible(False)
         axis.spines['right'].set_visible(False)
@@ -118,17 +199,36 @@ class ProcData():
                 reciprocal={'quantity_name': 'time', 'label': self.udic[0]['label']}
                 )
             csdm_spec = cp.CSDM(dependent_variables=[dv], dimensions=[dim])
-            csdm_spec.dimensions[0].to("ppm", "nmr_frequency_ratio")
+            csdm_spec.dimensions[0].to("ppm", "nmr_frequency_ratio")            
             return csdm_spec
         except:
             raise ImportError("csdmpy must be installed to use this function. Please install by typing 'pip install csdmpy' in the terminal.")
 
 
+
+
+#%% Forward FFT (FFT)
+    def FFT(self):
+        self.data = ng.process.proc_base.fft(self.data)
+        
+
+#%% Inverse iFFT (iFFT)
+    def iFFT(self):
+        self.data = ng.process.proc_base.ifft(self.data)
+
+#%% Shift_data
+    def ls(self,pts=0):
+        self.data = ng.process.proc_base.ls(self.data, pts)
+
+#%% Flip data
+    def flip(self):
+        self.data = np.flip(self.data)
+        
 #%%    '''Save spectrum to file'''
     def save(self,filename = r'data.dat', file_type = r'ascii', delimiter=' ', newline='\n', header='', footer='', comments='# ', encoding=None):
         
         if file_type == 'ascii':
-            self.xydata = np.column_stack([self.ppm_scale,self.rdata])
+            self.xydata = np.column_stack([self.ppm_scale,self.data.real])
             np.savetxt(filename, 
                        self.xydata, 
                        fmt='%.18e', 
@@ -139,7 +239,7 @@ class ProcData():
                        comments='# ', 
                        encoding=None)
         elif file_type == 'dmfit': #Readable by dmfit software
-            self.xydata = np.column_stack([self.hz_scale,self.rdata])
+            self.xydata = np.column_stack([self.hz_scale,self.data.real])
             np.savetxt(filename, 
                        self.xydata, 
                        fmt='%.18e', 
