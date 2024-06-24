@@ -39,9 +39,14 @@ dim = cp.LinearDimension(
 csdm_spec = cp.CSDM(dependent_variables=[dv], dimensions=[dim])
 csdm_spec.dimensions[0].to("ppm", "nmr_frequency_ratio") 
 
+x = csdm_spec.x[0].coordinates
+y = csdm_spec.y[0].components[0]
+
 plt.figure(figsize=(5, 3.5), num = 1)
 ax = plt.subplot(projection="csdm")
 ax.plot(csdm_spec)
 plt.tight_layout()
 plt.show()
 nmrstyle(ax)
+
+# plt.plot(x,y)

@@ -35,40 +35,45 @@ class ssNakeProc():
         file_dir = data_dir + r'\\' + os.path.split(data_dir)[1].replace('.fid','.json')
         f = f = open(file_dir)
 
-        spec = json.load(f)
-        data = np.array(spec['dataReal'][0])+1j*np.array(spec['dataImag'][0])
-        npts = data.size
-        Hz_scale = spec['xaxArray'][0]
+        self.json = json.load(f)
+        self.data = np.array(self.json['dataReal'][0])+1j*np.array(self.json['dataImag'][0])
+        npts = self.data.size
+        self.hz_scale = self.json['xaxArray'][0]
+        self.offset = self.json["freq"][0]-self.json["ref"][0]
 
-        dv = cp.as_dependent_variable(data, unit="")
-        dim = cp.LinearDimension(
-            count = npts, 
-            origin_offset = f'{spec["freq"][0]} Hz',  
-            #coordinates_offset = f'{spec["metaData"]["Offset [Hz]"]} Hz',
-            coordinates_offset = f'{spec["freq"][0]-spec["ref"][0]} Hz',
-            increment = f'{Hz_scale[1]-Hz_scale[0]} Hz',
-            complex_fft=True,
-            label="Frequency",
-            reciprocal={'quantity_name': 'time'}
-            )
-        self.csdm_spec = cp.CSDM(dependent_variables=[dv], dimensions=[dim])
-        self.csdm_spec.dimensions[0].to("ppm", "nmr_frequency_ratio") 
-        self.udic = list([])
-        self.udic.append(dict())
-        self.udic[0]['size']     = npts
-        self.udic[0]['complex']  = True
-        self.udic[0]['freq'] = True
-        self.udic[0]['sw']       = spec['sw'][0]
-        self.udic[0]['obs']      = spec['freq'][0]*1e-6
-        self.udic[0]['car']      = spec["freq"][0]-spec["ref"][0]
-        self.udic[0]['label']    = ''
-        self.uc = ng.fileiobase.uc_from_udic(self.udic) 
-        self.ppm_scale = self.uc.ppm_scale() # ppm axis
-        self.hz_scale = self.uc.hz_scale() # ppm axis
-        self.fid = ng.process.proc_base.ifft(self.data)
-        self.udic[0]['time'] = False
+        try:
+            dv = cp.as_dependent_variable(self.data, unit="")
+            dim = cp.LinearDimension(
+                count = npts, 
+                origin_offset = f'{self.json["freq"][0]} Hz',  
+                #coordinates_offset = f'{spec["metaData"]["Offset [Hz]"]} Hz',
+                coordinates_offset = f'{self.offset} Hz',
+                increment = f'{self.hz_scale[1]-self.hz_scale[0]} Hz',
+                complex_fft=True,
+                label="Frequency",
+                reciprocal={'quantity_name': 'time'}
+                )
+            self.csdm_spec = cp.CSDM(dependent_variables=[dv], dimensions=[dim])
+            self.csdm_spec.dimensions[0].to("ppm", "nmr_frequency_ratio") 
+            self.ppm_scale = self.csdm_spec.x[0].coordinates
+        except:
+            raise ImportError("csdmpy must be installed to use this function. Please install by typing 'pip install csdmpy' in the terminal.")    
+            
         
-        self.reffrq = self.dic['acqus']['SFO1']
+        
+        self.dic, self.fid = ng.varian.read(data_dir,'FID')
+        # self.udic = ng.fileio.varian.guess_udic(self.dic, self.data)                
+        # self.udic[0]['size']     = npts
+        # self.udic[0]['complex']  = True
+        # self.udic[0]['freq'] = True
+        # self.udic[0]['sw']  = spec['sw'][0]
+        # self.udic[0]['obs'] = spec['freq'][0]*1e-6
+        # self.udic[0]['car'] = spec["freq"][0]-spec["ref"][0]
+        # self.udic[0]['label'] = ''
+        # self.uc = ng.fileiobase.uc_from_udic(self.udic) 
+        # self.udic[0]['time'] = False
+        
+        # self.reffrq = spec["ref"][0]
 
 #%% Get area of an spectral region in ppm defined from a tupl variable
     def area(self,region = tuple()):
@@ -185,24 +190,20 @@ class ssNakeProc():
 
         
         """
-
-        try:
-            import csdmpy as cp
-            dv = cp.as_dependent_variable(self.data, unit="")
-            dim = cp.LinearDimension(
-                count = self.udic[0]['size'], 
-                origin_offset = f'{self.udic[0]["obs"]*1e6} Hz',  
-                coordinates_offset = f'{self.udic[0]["car"]} Hz',
-                increment = f'{self.hz_scale[1]-self.hz_scale[0]} Hz',
-                complex_fft=True,
-                label="Frequency",
-                reciprocal={'quantity_name': 'time', 'label': self.udic[0]['label']}
-                )
-            csdm_spec = cp.CSDM(dependent_variables=[dv], dimensions=[dim])
-            csdm_spec.dimensions[0].to("ppm", "nmr_frequency_ratio")            
-            return csdm_spec
-        except:
-            raise ImportError("csdmpy must be installed to use this function. Please install by typing 'pip install csdmpy' in the terminal.")
+        dv = cp.as_dependent_variable(self.data, unit="")
+        dim = cp.LinearDimension(
+            count = self.data.size, 
+            origin_offset = f'{self.json["freq"][0]} Hz',  
+            #coordinates_offset = f'{spec["metaData"]["Offset [Hz]"]} Hz',
+            coordinates_offset = f'{self.json["freq"][0]-self.json["ref"][0]} Hz',
+            increment = f'{self.hz_scale[1]-self.hz_scale[0]} Hz',
+            complex_fft=True,
+            label="Frequency",
+            reciprocal={'quantity_name': 'time'}
+            )        
+        csdm_spec = cp.CSDM(dependent_variables=[dv], dimensions=[dim])
+        return csdm_spec
+        
 
 
 
