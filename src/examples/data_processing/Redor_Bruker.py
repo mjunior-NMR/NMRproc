@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import ssnmr_proc.bruker as br
 import numpy as np
 
-data_dir = r'D:\Marcos\IFSC\Dados\Bruker\2020\2.5mm_NaPO3F_24_03_20\4\pdata\1'
+data_dir = r'D:\Marcos\IFSC\Dados\Bruker\2020\2.5mm_Jefferson_24_10_08_75Zn-25Na-5Al\1\pdata\1'
 
 
 spc = br.ProcData(data_dir)
@@ -20,8 +20,8 @@ spc.normalize()
 
 
 ax = plt.subplot()
-ax.plot(spc.ppm_scale,spc.data.real[:,48])
-ax.set_xlim([20,-40])
+ax.plot(spc.ppm_scale,spc.data.real)
+# ax.set_xlim([20,-40])
 
 
 region = (-40,20)

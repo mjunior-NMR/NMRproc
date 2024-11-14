@@ -18,7 +18,7 @@ class ProcData():
             spc.data.imag --> Imag spectrum
             spc.udic = nmrglue universal dictionary
             spc.ppm_scale = ppm axis
-            spc.normalize(method = 'area' or 'intensity', range = 'full' or a tuple with integration region) Normalize spectrum by maximum or area
+            spc.normalize(method = 'scans', 'area' or 'intensity', range = 'full' or a tuple with integration region) Normalize spectrum by maximum or area
             spc.plot() --> plot spectrum with NMR-like style"""
     def __init__(self,data_dir):        
         #Data dir must be a directory with processed Bruker 1r or 2rr files.
@@ -30,8 +30,7 @@ class ProcData():
         self.hz_scale = self.uc.hz_scale() # hz axis
         parent_dir = data_dir.replace(r'\pdata\1','\\')
         if os.path.isfile(parent_dir + 'vdlist') == True:
-            self.vdlist = np.loadtxt(parent_dir + 'vdlist')
-        
+            self.vdlist = np.loadtxt(parent_dir + 'vdlist')        
         if self.data.ndim == 2:
             self.uc1 = ng.fileiobase.uc_from_udic(self.udic, dim=1)
             self.ppm_scale_1 = self.uc1.ppm_scale() # ppm axis        
@@ -113,7 +112,9 @@ class ProcData():
             self.data = self.data-minimo
             
             norm = 1/max(self.data.real)
-            self.data = self.data*norm                    
+            self.data = self.data*norm                 
+        elif method == 'scans': #Divide pelo número de scans
+            self.data = self.data/self.dic['acqus']['NS']
         else:
             raise ValueError(r'method must be either "intensity" or "area"!')
                 
@@ -158,9 +159,31 @@ class ProcData():
 
         
         """
-
-        try:
-            import csdmpy as cp
+        import csdmpy as cp
+        if self.data.ndim == 2:
+            dv = cp.as_dependent_variable(self.data, unit="")
+            d0 = cp.LinearDimension(
+                count = self.udic[0]['size'], 
+                origin_offset = f'{self.udic[0]["obs"]*1e6} Hz',  
+                coordinates_offset = f'{self.udic[0]["car"]} Hz',
+                increment = f'{self.hz_scale[1]-self.hz_scale[0]} Hz',
+                complex_fft=True,
+                label="Frequency",
+                reciprocal={'quantity_name': 'time', 'label': self.udic[0]['label']}
+                )
+            d1 = cp.LinearDimension(
+                count = self.udic[1]['size'], 
+                origin_offset = f'{self.udic[1]["obs"]*1e6} Hz',  
+                coordinates_offset = f'{self.udic[1]["car"]} Hz',
+                increment = f'{self.hz_scale_1[1]-self.hz_scale_1[0]} Hz',
+                complex_fft=True,
+                label="Frequency",
+                reciprocal={'quantity_name': 'time', 'label': self.udic[1]['label']}
+                )
+            csdm_spec = cp.CSDM(dependent_variables=[dv], dimensions=[d0,d1])
+            csdm_spec.dimensions[0].to("ppm", "nmr_frequency_ratio")
+            csdm_spec.dimensions[1].to("ppm", "nmr_frequency_ratio")
+        else:            
             dv = cp.as_dependent_variable(self.data, unit="")
             dim = cp.LinearDimension(
                 count = self.udic[0]['size'], 
@@ -173,9 +196,8 @@ class ProcData():
                 )
             csdm_spec = cp.CSDM(dependent_variables=[dv], dimensions=[dim])
             csdm_spec.dimensions[0].to("ppm", "nmr_frequency_ratio")            
-            return csdm_spec
-        except:
-            raise ImportError("csdmpy must be installed to use this function. Please install by typing 'pip install csdmpy' in the terminal.")
+        return csdm_spec
+        
 
 
 
