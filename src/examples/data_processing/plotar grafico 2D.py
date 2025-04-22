@@ -5,7 +5,7 @@ import plotly.express as px
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-mport ssnmr_proc.bruker as br
+import ssnmr_proc.bruker as br
 
 data_dir = r'/content/1 - Zn ZIF-4 seco - sqdq2D_R1/pdata/1'
 

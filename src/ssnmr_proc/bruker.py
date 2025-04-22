@@ -22,8 +22,8 @@ class ProcData():
             spc.plot() --> plot spectrum with NMR-like style"""
     def __init__(self,data_dir):        
         #Data dir must be a directory with processed Bruker 1r or 2rr files.
-        self.dic, tmp = ng.bruker.read_pdata(data_dir, scale_data=True,all_components = True)
-        self.data = tmp[0]+1j*tmp[1]        
+        self.dic, tmp = ng.bruker.read_pdata(data_dir, scale_data=True,all_components = True)        
+        self.data = tmp[0]+1j*tmp[1]                
         self.udic = ng.bruker.guess_udic(self.dic, self.data.real) # Universal nmrglue dictionary
         self.uc = ng.fileiobase.uc_from_udic(self.udic, dim = 0)        
         self.ppm_scale = self.uc.ppm_scale() # ppm axis        
@@ -32,6 +32,8 @@ class ProcData():
         if os.path.isfile(parent_dir + 'vdlist') == True:
             self.vdlist = np.loadtxt(parent_dir + 'vdlist')        
         if self.data.ndim == 2:
+            if self.data.ndim == 2:
+                self.data = self.data.transpose()
             self.uc1 = ng.fileiobase.uc_from_udic(self.udic, dim=1)
             self.ppm_scale_1 = self.uc1.ppm_scale() # ppm axis        
             self.hz_scale_1 = self.uc1.hz_scale() # hz axis    
@@ -151,6 +153,107 @@ class ProcData():
         if major_ticks_space != None:
             axis.xaxis.set_minor_locator(MultipleLocator(minor_ticks_space))
     
+#%% "Plot 2D spexctrum" #parameters are always given in the sequence f1,f2. 
+#f2 is ploted in the X-axis.
+    def plot2D(self,
+               contour_start = 0.1,           # valor inicial do nível de contorno
+               contour_num = 10,              # número de níveis de contorno
+               contour_max = 1,
+               f1proj = [-0.1,1],
+               f2proj = [-0.1,1],               
+               f1lim = [],
+               f2lim = [],
+               f2label = r'$\delta_2$ /ppm',
+               f1label = r'$\delta_1$ /ppm',
+               color_map = 'winter',
+               diagonal_factor = 0,
+               proj_type = ['skyline','skyline']):
+
+        # Traduz os dados e parâmetros
+        Z = self.data.real
+        y = self.ppm_scale
+        x = self.ppm_scale_1
+        if not f1lim:
+            f1lim = [max(y),min(y)]
+        if not f2lim:
+            f2lim = [max(x),min(x)]
+        n1lim = [self.uc(str(f1lim[0]) + "ppm"),self.uc(str(f1lim[1]) + "ppm")]
+        n2lim = [self.uc1(str(f2lim[0]) + "ppm"),self.uc1(str(f2lim[1]) + "ppm")]
+        
+        # Verifica a dimensão de x
+        print(x.ndim)
+        
+        # Definir o índice da linha desejada
+        # line_index = 529
+        
+        # Cria a figura e os subplots
+        fig, axs = plt.subplots(2, 2, gridspec_kw={'height_ratios': [1, 5], 'width_ratios': [5, 1]}, figsize=(10, 8))
+        
+        
+        contour_factor = np.exp(np.log(contour_max / contour_start) / contour_num)  # fator de escala entre os níveis de contorno
+        
+        # Calcula os níveis de contorno
+        cl = contour_start * contour_factor ** np.arange(contour_num)
+        
+        # Projeção dos dados ao longo do eixo 0 para o gráfico superior
+        if proj_type[1]=='sum':
+            proj_x = Z[n1lim[0]:n1lim[1],:].sum(axis=0)
+            proj_x = proj_x / proj_x.max()
+        if proj_type[1]=='skyline':
+            proj_x = Z[n1lim[0]:n1lim[1],:].max(axis=0)
+            proj_x = proj_x / proj_x.max()
+        # Projeção dos dados ao longo do eixo 1 para o gráfico à direita
+        if proj_type[0]=='sum':
+            proj_y = Z[:,n2lim[0]:n2lim[1]].sum(axis=1)
+            proj_y = proj_y / proj_y.max()
+        if proj_type[0]=='skyline':
+            proj_y = Z[:,n2lim[0]:n2lim[1]].max(axis=1)
+            proj_y = proj_y / proj_y.max()
+        # Gráfico superior (projeção x)
+        axs[0, 0].plot(x, proj_x, linestyle='solid', linewidth=1, color='k')
+        axs[0, 0].set_xlim(f2lim)
+        axs[0, 0].spines['top'].set_visible(False)
+        axs[0, 0].spines['right'].set_visible(False)
+        axs[0, 0].spines['bottom'].set_visible(False)
+        axs[0, 0].spines['left'].set_visible(False)
+        axs[0, 0].xaxis.set_visible(False)
+        axs[0, 0].yaxis.set_visible(False)
+        axs[0, 0].set_ylim(f2proj)
+        
+        # Gráfico de contorno
+        contour = axs[1, 0].contour(x, y, Z, cl, cmap= color_map)
+        axs[1, 0].set_ylim(f1lim)
+        axs[1, 0].set_xlim(f2lim)
+        axs[1, 0].set_xlabel(f2label, fontsize=18)
+        axs[1, 0].set_ylabel(f1label, fontsize=18)
+        axs[1, 0].tick_params(axis='both', which='major', labelsize=14)
+        if diagonal_factor != 0:
+            axs[1, 0].plot(x,diagonal_factor*x, linestyle = 'dashed', linewidth = 1.5, color = 'r')
+        
+        # Gráfico superior direito (vazio)
+        axs[0, 1].spines['top'].set_visible(False)
+        axs[0, 1].spines['right'].set_visible(False)
+        axs[0, 1].spines['bottom'].set_visible(False)
+        axs[0, 1].spines['left'].set_visible(False)
+        axs[0, 1].xaxis.set_visible(False)
+        axs[0, 1].yaxis.set_visible(False)
+        
+        # Gráfico à direita (projeção y)
+        axs[1, 1].plot(proj_y, y, linestyle='solid', linewidth=1, color='k')
+        axs[1, 1].set_ylim(f1lim)
+        axs[1, 1].spines['top'].set_visible(False)
+        axs[1, 1].spines['right'].set_visible(False)
+        axs[1, 1].spines['bottom'].set_visible(False)
+        axs[1, 1].spines['left'].set_visible(False)
+        axs[1, 1].xaxis.set_visible(False)
+        axs[1, 1].yaxis.set_visible(False)
+        axs[1, 1].set_xlim(f1proj)
+        
+        
+        
+        # Ajuste dos espaçamentos
+        plt.subplots_adjust(hspace=0.05, wspace=0.05)
+
 
 #%%   '''Save proc_spec as csdm file'''
     def to_csdm(self):

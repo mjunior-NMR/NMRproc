@@ -62,11 +62,11 @@ class ssNakeProc():
         
         
         self.dic, self.fid = ng.varian.read(data_dir,'FID')
-        # self.udic = ng.fileio.varian.guess_udic(self.dic, self.data)                
+        self.udic = ng.fileio.varian.guess_udic(self.dic, self.data)                
         # self.udic[0]['size']     = npts
         # self.udic[0]['complex']  = True
         # self.udic[0]['freq'] = True
-        # self.udic[0]['sw']  = spec['sw'][0]
+        self.udic[0]['sw']  = self.json['sw']
         # self.udic[0]['obs'] = spec['freq'][0]*1e-6
         # self.udic[0]['car'] = spec["freq"][0]-spec["ref"][0]
         # self.udic[0]['label'] = ''

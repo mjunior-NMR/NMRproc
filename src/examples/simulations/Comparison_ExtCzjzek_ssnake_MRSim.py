@@ -31,7 +31,7 @@ Cq_range = np.linspace(0,20,100)
 eta_range = np.linspace(0,1,10)
 
 
-diso = 30; Cq= 7.7; eps_val = 0.879
+diso = 30; Cq= 7.7; eps_val = 0.87
 
 
 
