@@ -105,7 +105,7 @@ class ProcData():
             # self.data.real = self.data.real*norm
             
         elif method == 'area':
-            if region == ():
+            if region == []:
                 raise ValueError(r'Region must be informed in Tuple format')
             norm = 1/self.area(region)
             self.data = self.data*norm
