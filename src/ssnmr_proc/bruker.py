@@ -32,8 +32,8 @@ class ProcData():
         if os.path.isfile(parent_dir + 'vdlist') == True:
             self.vdlist = np.loadtxt(parent_dir + 'vdlist')        
         if self.data.ndim == 2:
-            if self.data.ndim == 2:
-                self.data = self.data.transpose()
+            # if self.data.ndim == 2:
+            #     self.data = self.data.transpose() #PQ eu fiz esta transposição?
             self.uc1 = ng.fileiobase.uc_from_udic(self.udic, dim=1)
             self.ppm_scale_1 = self.uc1.ppm_scale() # ppm axis        
             self.hz_scale_1 = self.uc1.hz_scale() # hz axis    
@@ -67,10 +67,10 @@ class ProcData():
         else:
             for i in range(0,nspec):
                 data = self.data.real[:,i]
-                p1 = self.uc(str(region[0])+' ppm') #convert from ppm_scale to points p1 and p2
-                p2 = self.uc(str(region[1])+' ppm')
+                p1 = self.uc1(str(region[0])+' ppm') #convert from ppm_scale to points p1 and p2
+                p2 = self.uc1(str(region[1])+' ppm')
                 reduced_rdata = data.real[min(p1,p2):max(p1,p2)]
-                reduced_ppm_scale = self.ppm_scale[min(p1,p2):max(p1,p2)]
+                reduced_ppm_scale = self.ppm_scale_1[min(p1,p2):max(p1,p2)]
                 area[i] = abs(np.trapz(reduced_rdata,reduced_ppm_scale))
         return area
 
@@ -167,10 +167,11 @@ class ProcData():
                f1label = r'$\delta_1$ /ppm',
                color_map = 'winter',
                diagonal_factor = 0,
-               proj_type = ['skyline','skyline']):
+               proj_type = ['skyline','skyline'],
+               fig_num = []):
 
         # Traduz os dados e parâmetros
-        Z = self.data.real
+        Z = self.data.real.transpose()
         y = self.ppm_scale
         x = self.ppm_scale_1
         if not f1lim:
@@ -224,11 +225,12 @@ class ProcData():
         contour = axs[1, 0].contour(x, y, Z, cl, cmap= color_map)
         axs[1, 0].set_ylim(f1lim)
         axs[1, 0].set_xlim(f2lim)
-        axs[1, 0].set_xlabel(f2label, fontsize=18)
-        axs[1, 0].set_ylabel(f1label, fontsize=18)
-        axs[1, 0].tick_params(axis='both', which='major', labelsize=14)
+        axs[1, 0].set_xlabel(f2label, fontsize=20)
+        axs[1, 0].set_ylabel(f1label, fontsize=20)
+        axs[1, 0].tick_params(axis='both', which='major', labelsize=18)
         if diagonal_factor != 0:
             axs[1, 0].plot(x,diagonal_factor*x, linestyle = 'dashed', linewidth = 1.5, color = 'r')
+        axs[1, 0].minorticks_on()
         
         # Gráfico superior direito (vazio)
         axs[0, 1].spines['top'].set_visible(False)

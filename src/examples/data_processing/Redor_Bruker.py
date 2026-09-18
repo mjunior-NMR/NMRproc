@@ -20,7 +20,7 @@ spc.normalize()
 
 
 ax = plt.subplot()
-ax.plot(spc.ppm_scale,spc.data.real)
+ax.plot(spc.ppm_scale_1,spc.data.real)
 # ax.set_xlim([20,-40])
 
 
@@ -28,7 +28,7 @@ region = (-40,20)
 
 nspec = spc.dic['acqu2s']['TD']
 
-area = spc.area
+area = spc.f2area(region)
 
 area = np.zeros(nspec)
 

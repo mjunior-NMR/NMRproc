@@ -55,23 +55,4 @@ spc.save(r'procdata.pkl', file_type = 'pickle') # Save a binary file containing 
 
 
 
-# converter = ng.fileio.convert.converter()
-
-# converter.from_bruker(dic=spc.dic, data=spc.rdata, udic=None, remove_digital_filter=False)
-
-
-# spec = converter.to_csdm()
-
-# spec = spec.real
-
-# spec.x[0].to("ppm", "nmr_frequency_ratio")
-# plt.figure(figsize=(4.25, 3.0))
-# ax = plt.subplot(projection="csdm")
-# ax.plot(spec, color="black", linewidth=0.5, label="Experiment")
-# ax.set_xlim(150, -150)
-# plt.grid()
-# plt.tight_layout()
-# plt.show()
-
-
 

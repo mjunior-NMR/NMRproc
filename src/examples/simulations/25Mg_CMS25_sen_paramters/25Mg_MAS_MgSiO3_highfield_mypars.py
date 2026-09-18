@@ -32,11 +32,13 @@ def get_git_root(path):
 
 
 # Load experimental data into class ProcData
-data_dir = get_git_root(os.getcwd()) + r'src/examples/simulations/25Mg_CMS25_sen_paramters/simulation_Sen_lowfield.csdf'
+data_dir = get_git_root(os.getcwd()) + r'/src/examples/simulations/25Mg_CMS25_sen_paramters/CaMgSi2O6_glass_MAS.TXT'
 
-exp_spc = cp.load(data_dir)
-exp_spc.x[0].to("ppm", "nmr_frequency_ratio")
-exp_spc /= exp_spc.real.max()
+sen_data = np.loadtxt(data_dir)
+
+# exp_spc = cp.load(data_dir)
+# exp_spc.x[0].to("ppm", "nmr_frequency_ratio")
+# exp_spc /= exp_spc.real.max()
 
 # simproc = sp.SignalProcessor(
 # operations=[
@@ -127,8 +129,9 @@ sim_spc /= sim_spc.max()
 
 
 fig, ax = plt.subplots(figsize=(6, 5), subplot_kw={"projection": "csdm"}, num=2)
-ax.plot(exp_spc.real, color = 'k', label = 'experimental')
-ax.plot(sim_spc.real, color = 'g', linestyle = (0,(3,1,1,1)), label = 'Sum')
+# ax.plot(exp_spc.real, color = 'k', label = 'experimental')
+ax.plot(sen_data[:,0],sen_data[:,1], color = 'k', label = 'experimental')
+ax.plot(sim_spc.real, color = 'g', linestyle = (0,(3,1,1,1)), label = 'Simulation')
 plt.legend(loc='center right')
 
 #Plot opptions
